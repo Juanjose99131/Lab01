@@ -1,0 +1,266 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class CalculatorApp {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new CalculatorSelector().setVisible(true));
+    }
+}
+
+// Interfaz para seleccionar la calculadora
+class CalculatorSelector extends JFrame {
+    public CalculatorSelector() {
+        setTitle("Seleccionar Calculadora");
+        setSize(300, 150);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JButton btnConsole = new JButton("Calculadora de Consola");
+        JButton btnGraphic = new JButton("Calculadora Gráfica");
+
+        btnConsole.addActionListener(e -> {
+            // Llamar a la calculadora de consola
+            ConsoleCalculator.main(null);
+            dispose();
+        });
+
+        btnGraphic.addActionListener(e -> {
+            // Llamar a la calculadora gráfica
+            new GraphicalCalculator().setVisible(true);
+            dispose();
+        });
+
+        setLayout(new GridLayout(2, 1));
+        add(btnConsole);
+        add(btnGraphic);
+    }
+}
+
+// Clase para la calculadora de consola
+class ConsoleCalculator {
+    public static void main(String[] args) {
+        try (java.util.Scanner teclado = new java.util.Scanner(System.in)) {
+            boolean continuar = true;
+            
+            while (continuar) {
+                double num1;
+                double num2 = 0;
+                String operacion;
+                
+                System.out.println("Ingrese un primer número: ");
+                num1 = teclado.nextDouble();
+                
+                System.out.println("Ingrese su operación (+, -, /, *, sin, cos, tan, raiz, potencia, iva): ");
+                operacion = teclado.next();
+                
+                if (!(operacion.equals("sin") || operacion.equals("cos") || operacion.equals("tan") || operacion.equals("raiz"))) {
+                    if (operacion.equals("potencia")) {
+                        System.out.println("La base será el primer número y el exponente será el segundo número.");
+                    }
+                    if (operacion.equals("iva")) {
+                        System.out.println("El primer número es el valor al que se le va a aplicar el IVA, el segundo número es el porcentaje de IVA.");
+                    }
+                    System.out.println("Ingrese un segundo número: ");
+                    num2 = teclado.nextDouble();
+                }
+                
+                switch (operacion) {
+                    case "+" -> System.out.println("La suma de " + num1 + " + " + num2 + " es: " + sumar(num1, num2));
+                    
+                    case "-" -> System.out.println("La resta de " + num1 + " - " + num2 + " es: " + restar(num1, num2));
+                    
+                    case "/" -> {
+                        if (num2 == 0) {
+                            System.err.println("No es posible la división entre 0");
+                        } else {
+                            System.out.println("La división de " + num1 + " / " + num2 + " es: " + dividir(num1, num2));
+                        }
+                    }
+                    
+                    case "*" -> System.out.println("La multiplicación de " + num1 + " * " + num2 + " es: " + multiplicar(num1, num2));
+                    
+                    case "sin" -> System.out.println("El seno de " + num1 + " es: " + Math.sin(Math.toRadians(num1)));
+                    
+                    case "cos" -> System.out.println("El coseno de " + num1 + " es: " + Math.cos(Math.toRadians(num1)));
+                    
+                    case "tan" -> System.out.println("La tangente de " + num1 + " es: " + Math.tan(Math.toRadians(num1)));
+                    
+                    case "raiz" -> System.out.println("La raíz cuadrada de " + num1 + " es: " + Math.sqrt(num1));
+                    
+                    case "potencia" -> System.out.println("La potencia de " + num1 + " elevado a " + num2 + " es: " + Math.pow(num1, num2));
+                    
+                    case "iva" -> System.out.println("El valor de " + num1 + " con un IVA de " + num2 + "% es: " + calcularIVA(num1, num2));
+                    
+                    default -> System.out.println("No ingresó una operación válida...");
+                }
+                
+                System.out.println("¿Desea realizar otra operación? (s/n): ");
+                String respuesta = teclado.next();
+                if (!respuesta.equalsIgnoreCase("s")) {
+                    continuar = false;
+                }
+            }
+            System.out.println("Gracias por usar la calculadora.");
+        }
+    }
+
+    public static double sumar(double a, double b) {
+        return a + b;
+    }
+
+    public static double restar(double a, double b) {
+        return a - b;
+    }
+
+    public static double dividir(double a, double b) {
+        return a / b;
+    }
+
+    public static double multiplicar(double a, double b) {
+        return a * b;
+    }
+
+    public static double calcularIVA(double a, double b) {
+        return a * (1 + b / 100);
+    }
+}
+
+// Clase para la calculadora gráfica
+class GraphicalCalculator extends JFrame {
+    private float primernumero;
+    private float segundonumero;
+    private String operador;
+    private JLabel casilla;
+    private final JButton[] numberButtons = new JButton[10];
+    private final JButton[] functionButtons = new JButton[4];
+    private JButton btnDot;
+    private JButton btnEqual;
+    private JButton btnClear;
+    private JButton btnSqrt;
+
+    public GraphicalCalculator() {
+        setTitle("Calculadora Gráfica");
+        setSize(400, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        initComponents();
+    }
+
+    private void initComponents() {
+        casilla = new JLabel("");
+        casilla.setHorizontalAlignment(SwingConstants.RIGHT);
+        casilla.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        casilla.setOpaque(true);
+        casilla.setBackground(Color.CYAN);
+        casilla.setPreferredSize(new Dimension(400, 50));
+
+        btnClear = new JButton("C");
+        btnDot = new JButton(".");
+        btnEqual = new JButton("=");
+        btnSqrt = new JButton("√n");
+
+        btnClear.addActionListener(e -> casilla.setText(""));
+        btnEqual.addActionListener(e -> calculateResult());
+        btnSqrt.addActionListener(e -> {
+            primernumero = Float.parseFloat(casilla.getText());
+            operador = "√";
+            casilla.setText("");
+        });
+
+        String[] functions = {"/", "*", "-", "+"};
+        for (int i = 0; i < functions.length; i++) {
+            functionButtons[i] = new JButton(functions[i]);
+            functionButtons[i].addActionListener(new FunctionButtonListener(functions[i]));
+        }
+
+        for (int i = 0; i < 10; i++) {
+            numberButtons[i] = new JButton(String.valueOf(i));
+            numberButtons[i].addActionListener(new NumberButtonListener(i));
+        }
+
+        createLayout();
+    }
+
+    private void createLayout() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(5, 4, 5, 5));
+        panel.add(btnClear);
+        panel.add(new JLabel(""));
+        panel.add(new JLabel(""));
+        panel.add(btnSqrt);
+
+        panel.add(functionButtons[0]);
+        panel.add(numberButtons[7]);
+        panel.add(numberButtons[8]);
+        panel.add(numberButtons[9]);
+
+        panel.add(functionButtons[1]);
+        panel.add(numberButtons[4]);
+        panel.add(numberButtons[5]);
+        panel.add(numberButtons[6]);
+
+        panel.add(functionButtons[2]);
+        panel.add(numberButtons[1]);
+        panel.add(numberButtons[2]);
+        panel.add(numberButtons[3]);
+
+        panel.add(functionButtons[3]);
+        panel.add(numberButtons[0]);
+        panel.add(btnDot);
+        panel.add(btnEqual);
+
+        add(casilla, BorderLayout.NORTH);
+        add(panel, BorderLayout.CENTER);
+    }
+
+    private void calculateResult() {
+        segundonumero = Float.parseFloat(casilla.getText());
+        switch (operador) {
+            case "+":
+                casilla.setText(Float.toString(primernumero + segundonumero));
+                break;
+            case "-":
+                casilla.setText(Float.toString(primernumero - segundonumero));
+                break;
+            case "*":
+                casilla.setText(Float.toString(primernumero * segundonumero));
+                break;
+            case "/":
+                casilla.setText(Float.toString(primernumero / segundonumero));
+                break;
+            case "√":
+                casilla.setText(Float.toString((float) Math.pow(primernumero, 1.0 / segundonumero)));
+                break;
+        }
+    }
+
+    private class NumberButtonListener implements ActionListener {
+        private final int number;
+
+        public NumberButtonListener(int number) {
+            this.number = number;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            casilla.setText(casilla.getText() + number);
+        }
+    }
+
+    private class FunctionButtonListener implements ActionListener {
+        private final String operation;
+
+        public FunctionButtonListener(String operation) {
+            this.operation = operation;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            primernumero = Float.parseFloat(casilla.getText());
+            operador = operation;
+            casilla.setText("");
+        }
+    }
+}
